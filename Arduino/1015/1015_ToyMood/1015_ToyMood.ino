@@ -11,15 +11,14 @@ bool ButtonPressed = false;
 unsigned long touchedTimer = 0;
 unsigned long reducedTimer = 0;
 
-const long unTouchInterval = 5000;  // 5 sec inactivity before mood decreases
-const long reducedInterval = 1000;  // reduce mood every 1 sec
+const long unTouchInterval = 5000;
+const long reducedInterval = 1000;
 
 void setup() {
-  pinMode(buttonPin, INPUT_PULLUP); // stable input
+  pinMode(buttonPin, INPUT_PULLUP);
   pinMode(RledPin, OUTPUT);
   pinMode(GledPin, OUTPUT);
   pinMode(BledPin, OUTPUT);
-
   mood = neutralMood;
 }
 
@@ -28,13 +27,17 @@ void loop() {
 
   int reading = digitalRead(buttonPin);
 
-  // Detect button press (LOW = pressed in INPUT_PULLUP)
   if (reading == LOW && !ButtonPressed) {
     mood += 1;
-    mood = constrain(mood, 0, 20);  // keep mood in range
+    mood = constrain(mood, 0, 20);
     touchedTimer = millis();
     ButtonPressed = true;
-    delay(50); // debounce delay
+    delay(50);
+
+    // blink green when mood reaches max
+    if (mood == 20) {
+      happyBlink();
+    }
   }
 
   if (reading == HIGH && ButtonPressed) {
@@ -43,7 +46,6 @@ void loop() {
 
   unsigned long currentTimer = millis();
 
-  // If not touched for a while, reduce mood gradually
   if (currentTimer - touchedTimer > unTouchInterval) {
     if (currentTimer - reducedTimer > reducedInterval) {
       mood -= 1;
@@ -53,15 +55,25 @@ void loop() {
   }
 }
 
-// Function to control LED color based on mood value
 void showLEDState(int moodValue) {
-  // Map mood to color range
-  int red = map(moodValue, 0, 20, 255, 0);   // low mood → red
-  int green = map(moodValue, 0, 20, 0, 255); // high mood → green
-  int blue = 50;                             // faint blue for blend
+  int red = map(moodValue, 0, 20, 255, 0);   // low mood = red
+  int green = map(moodValue, 0, 20, 0, 255); // high mood = green
+  int blue = map(moodValue, 0, 20, 0, 80);   // small blue when mood rises
 
-  // Invert values for common anode LED
   analogWrite(RledPin, 255 - red);
   analogWrite(GledPin, 255 - green);
   analogWrite(BledPin, 255 - blue);
+}
+
+void happyBlink() {
+  for (int i = 0; i < 3; i++) {
+    analogWrite(RledPin, 255);
+    analogWrite(GledPin, 0);
+    analogWrite(BledPin, 255);
+    delay(150);
+    analogWrite(RledPin, 255);
+    analogWrite(GledPin, 255);
+    analogWrite(BledPin, 255);
+    delay(150);
+  }
 }
