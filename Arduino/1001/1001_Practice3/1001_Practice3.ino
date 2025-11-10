@@ -23,7 +23,7 @@ void loop() {
   // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
   if (buttonState == HIGH) {
     ledcolor = ledcolor + 1;
-    delay(100);
+    delay(1000);
   }
   if (ledcolor ==0){
     digitalWrite(RledPin, HIGH);
